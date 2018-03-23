@@ -1,0 +1,24 @@
+services:
+    kafka_configuration:
+        class: 'RdKafka\Conf'
+
+    kafka_topic_configuration:
+        class: 'RdKafka\TopicConf'
+
+    widicorp_kafka.producer_factory:
+        class: 'Widicorp\KafkaBundle\Factory\ProducerFactory'
+        arguments:
+            - "@kafka_configuration"
+            - "@kafka_topic_configuration"
+
+    widicorp_kafka.consumer_factory:
+        class: 'Widicorp\KafkaBundle\Factory\ConsumerFactory'
+        arguments:
+            - "@kafka_configuration"
+            - "@kafka_topic_configuration"
+
+    #Commands
+    widicorp_kafka.command.consumer_topic:
+        class: 'Widicorp\KafkaBundle\Command\ConsumeTopicCommand'
+        tags:
+            - { name: 'console.command', command: 'widicorp:kafka:consume' }

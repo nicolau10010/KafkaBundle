@@ -1,0 +1,38 @@
+{
+  "name": "widicorp/kafka-bundle",
+  "type" : "symfony-bundle",
+  "description": "Kafka bundle on top of rdkafka extension",
+  "keywords": ["Kafka", "bundle"],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Widicorp",
+      "email": "info@widitrade.com",
+      "homepage": "https://widitrade.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.1",
+    "ext-rdkafka": "*",
+    "kwn/php-rdkafka-stubs": "^0.0.5",
+    "symfony/dependency-injection": "^4.0",
+    "symfony/console": "^4.0",
+    "symfony/framework-bundle": "^4.0",
+    "psr/log": "^1.0"
+  },
+  "require-dev": {
+    "atoum/atoum": "~3.0",
+    "atoum/stubs": "~2.5",
+    "symfony/expression-language": "4.0",
+    "symfony/config": "^4.0",
+    "symfony/yaml": "^4.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Widicorp\\KafkaBundle\\": ""
+    }
+  },
+  "config": {
+    "bin-dir": "bin/"
+  }
+}
