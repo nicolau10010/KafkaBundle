@@ -30,7 +30,7 @@ class ConsumerFactory extends AbstractKafkaFactory
         $consumer = new $consumerClass($this->configuration);
 
         $consumerManager->setConsumer($consumer);
-        $consumerManager->addTopic($consumerData['topics'], $consumer);
+        $consumerManager->addTopic($consumerData['topics']);
         $consumerManager->setTimeoutConsumingQueue((int) $consumerData['timeout_consuming_queue']);
 
         return $consumerManager;
