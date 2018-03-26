@@ -65,6 +65,7 @@ widicorp_kafka:
             topicConfiguration:
                 auto.offset.reset: 'smallest'
             timeout_consuming_queue: 200
+            message_handler: 'App\Consumer\MyService'
             topics:
                 - batman
                 - catwoman
@@ -97,6 +98,7 @@ Whereas for the consumers, we have one topic configuration for all topics:
 topicConfiguration:
     auto.offset.reset: 'smallest'
 timeout_consuming_queue: 200
+message_handler: 'App\Consumer\MyService'
 topics:
     - batman
     - catwoman
@@ -164,9 +166,9 @@ In case there is a time out, it will give you a _Time out_ string.
 
 #### Consuming from CLI
 
-You can use your own service to process Kakfa topic messages and run it from Symfony special command provided by us.
+You can use your own service to process topic messages and run it from Symfony special command provided by us.
 
-At first you have to create your own service implementing MessageHandlerInterface. For example:
+At first you have to create your own service implementing MessageHandlerInterface or extending MessageHandlerAbstract. For example:
 
 ```php
 <?php
@@ -188,10 +190,28 @@ class TestConsumer extends MessageHandlerAbstract
 
 ```
 
-Then you could start consuming messages executing this command with your consumer and service name:
+Check you consumers configuration:
+
+```yaml
+consumers:
+    consumer1:
+        configuration:
+            metadata.broker.list: '127.0.0.1'
+            group.id: 'myConsumerGroup'
+            enable.auto.commit: 0
+        topicConfiguration:
+            auto.offset.reset: 'smallest'
+        timeout_consuming_queue: 200
+        message_handler: 'App\Service\TestConsumer'
+        topics:
+            - batman
+            - catwoman
+```
+
+Then you could start consuming and processing messages from batman and catwoman topics executing this command:
 
 ```
-php bin/console widicorp:kafka:consume you_consumer_name "AppBundle\Service\TestConsumer"
+php bin/console widicorp:kafka:consume consumer1
 ```
 
 Also you can add --auto-commit option to enable auto commit in every consumed message.

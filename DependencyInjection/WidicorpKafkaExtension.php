@@ -30,14 +30,11 @@ class WidicorpKafkaExtension extends Extension
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yml');
 
+        $container->setParameter('widicorp_kafka.services_name_prefix', $config['services_name_prefix']);
+
         $this->loadProducers($container, $config);
         $this->loadConsumers($container, $config);
-        $this->autoConfigureServices($container);
-
-        $container->setParameter('widicorp_kafka.services_name_prefix', $config['services_name_prefix']);
-        $container->setParameter('widicorp_kafka.logger.enabled', $config['logger']['enabled']);
-        $container->setParameter('widicorp_kafka.logger.service', $config['logger']['service']);
-        $container->setParameter('widicorp_kafka.logger.level', $config['logger']['level']);
+        $this->loadCommandLogger($container, $config);
     }
 
     /**
@@ -87,6 +84,7 @@ class WidicorpKafkaExtension extends Extension
                 [
                     'RdKafka\KafkaConsumer',
                     $consumerData,
+                    new Reference($consumerData['message_handler']),
                 ]
             );
 
@@ -107,11 +105,19 @@ class WidicorpKafkaExtension extends Extension
 
     /**
      * @param ContainerBuilder $container
+     * @param array $config
      */
-    protected function autoConfigureServices(ContainerBuilder $container)
+    private function loadCommandLogger(ContainerBuilder $container, array $config)
     {
-        $container->registerForAutoconfiguration(MessageHandlerInterface::class)
-            ->addTag('widicorp_kafka_consumer_service')->setPublic(true);
+        if (!$config['logger']['enabled']) {
+            return;
+        }
+
+        $logger = new Reference($config['logger']['service']);
+        $container->getDefinition('widicorp_kafka.command.consumer_topic')
+            ->addMethodCall('setLogger', [$logger]);
+
+        $container->setParameter('widicorp_kafka.logger.level', $config['logger']['level']);
     }
 
     /**

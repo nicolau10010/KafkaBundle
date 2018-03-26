@@ -2,6 +2,7 @@
 
 namespace Widicorp\KafkaBundle\Factory;
 
+use Widicorp\KafkaBundle\Handler\MessageHandlerInterface;
 use Widicorp\KafkaBundle\Manager\ConsumerManager;
 use Widicorp\KafkaBundle\Helper\PartitionAssignment;
 
@@ -16,8 +17,11 @@ class ConsumerFactory extends AbstractKafkaFactory
      *
      * @return ConsumerManager
      */
-    public function get(string $consumerClass, array $consumerData): ConsumerManager
-    {
+    public function get(
+        string $consumerClass,
+        array $consumerData,
+        MessageHandlerInterface $messageHandler
+    ) : ConsumerManager {
         $consumerManager = new ConsumerManager();
 
         $this->getReadyTopicConf($consumerData['topicConfiguration']);
@@ -32,6 +36,7 @@ class ConsumerFactory extends AbstractKafkaFactory
         $consumerManager->setConsumer($consumer);
         $consumerManager->addTopic($consumerData['topics']);
         $consumerManager->setTimeoutConsumingQueue((int) $consumerData['timeout_consuming_queue']);
+        $consumerManager->setMessageHandler($messageHandler);
 
         return $consumerManager;
     }

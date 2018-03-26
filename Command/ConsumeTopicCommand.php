@@ -6,7 +6,6 @@ namespace Widicorp\KafkaBundle\Command;
 
 use Psr\Log\LoggerInterface;
 use Widicorp\KafkaBundle\Manager\ConsumerManager;
-use Widicorp\KafkaBundle\Handler\MessageHandlerInterface;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -24,7 +23,6 @@ class ConsumeTopicCommand extends ContainerAwareCommand
             ->setName('widicorp:kafka:consume')
             ->setDescription('Consume command to process kafka topics')
             ->addArgument('consumer', InputArgument::REQUIRED, 'Consumer name')
-            ->addArgument('handler', InputArgument::REQUIRED, 'Handler service name')
             ->addOption('auto-commit', null, InputOption::VALUE_NONE, 'Auto commit enabled?')
             ->addOption('memory-max', null, InputOption::VALUE_REQUIRED, 'Memory max in bytes');
     }
@@ -35,7 +33,6 @@ class ConsumeTopicCommand extends ContainerAwareCommand
         $prefixName = $container->getParameter('widicorp_kafka.services_name_prefix');
 
         $consumer = $input->getArgument('consumer');
-        $handler = $input->getArgument('handler');
         $autoCommit = $input->getOption('auto-commit');
         $memoryMax = $input->getOption('memory-max');
 
@@ -45,14 +42,6 @@ class ConsumeTopicCommand extends ContainerAwareCommand
         $topicConsumer = $container->get(sprintf('%s.consumer.%s', $prefixName, $consumer));
         if (!$topicConsumer) {
             throw new \Exception(sprintf("TopicConsumer with name '%s' is not defined", $consumer));
-        }
-
-        /**
-         * @var MessageHandlerInterface $messageHandler
-         */
-        $messageHandler = $container->get($handler);
-        if (!$messageHandler) {
-            throw new \Exception(sprintf("Message Handler with name '%s' is not defined", $handler));
         }
 
         $output->writeln(
@@ -67,9 +56,9 @@ leaving it.)' . PHP_EOL . '</comment>'
             switch ($message->err) {
                 case RD_KAFKA_RESP_ERR_NO_ERROR:
                     try {
-                        $messageHandler->process($message);
+                        $topicConsumer->getMessageHandler()->process($message);
                     } catch (\Throwable $e) {
-                        if ($this->getContainer()->getParameter('widicorp_kafka.logger.enabled')) {
+                        if ($this->logger) {
                             $this->logError($message, $e->getMessage());
                         }
                         $output->writeln('<question>Error processing</question>');
@@ -80,7 +69,7 @@ leaving it.)' . PHP_EOL . '</comment>'
                     break;
                 case RD_KAFKA_RESP_ERR__PARTITION_EOF:
                     $output->writeln('<question>No more messages; will wait for more</question>');
-                    $messageHandler->endOfPartitionReached();
+                    $topicConsumer->getMessageHandler()->endOfPartitionReached();
                     break;
                 case RD_KAFKA_RESP_ERR__TIMED_OUT:
                     $output->writeln('<question>Timed out</question>');

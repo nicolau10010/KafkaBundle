@@ -2,7 +2,7 @@
 
 namespace Widicorp\KafkaBundle\Manager;
 
-use Widicorp\KafkaBundle\Exceptions\KafkaException;
+use Widicorp\KafkaBundle\Handler\MessageHandlerInterface;
 
 /**
  * Class ConsumerManager
@@ -26,6 +26,11 @@ class ConsumerManager
      * @var int
      */
     protected $timeoutConsumingQueue;
+
+    /**
+     * @var MessageHandlerInterface
+     */
+    protected $messageHandler;
 
     /**
      * @return string
@@ -63,9 +68,7 @@ class ConsumerManager
 
     /**
      * @param bool $autoCommit
-     * @return \RdKafka\Message
-     *
-     * @throws KafkaException
+     * @return mixed
      */
     public function consume(bool $autoCommit = true)
     {
@@ -78,5 +81,21 @@ class ConsumerManager
     public function commit()
     {
         $this->consumer->commit($this->message);
+    }
+
+    /**
+     * @param MessageHandlerInterface $messageHandler
+     */
+    public function setMessageHandler(MessageHandlerInterface $messageHandler)
+    {
+        $this->messageHandler = $messageHandler;
+    }
+
+    /**
+     * @return MessageHandlerInterface
+     */
+    public function getMessageHandler() : MessageHandlerInterface
+    {
+        return $this->messageHandler;
     }
 }
